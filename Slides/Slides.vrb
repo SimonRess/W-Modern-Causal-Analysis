@@ -1,0 +1,35 @@
+\frametitle{DAG Examples VIII: Regression result, wrong control}
+\textbf{Usage of Z1 to satisfy CIA}
+% latex table generated in R 4.2.1 by xtable 1.8-4 package
+% Fri Dec 16 17:22:34 2022
+\begin{table}[ht]
+\centering
+\begingroup\small
+\begin{tabular}{rrrrr}
+  \hline
+ & Estimate & Std. Error & t value & Pr($>$$|$t$|$) \\
+  \hline
+(Intercept) & -6.2713 & 0.1713 & -36.62 & 0.0000 \\
+  D & 1.8519 & 0.0185 & 99.84 & 0.0000 \\
+  C2 & 0.8255 & 0.0137 & 60.09 & 0.0000 \\
+   \hline
+\end{tabular}
+\endgroup
+\caption{Regression: lm(Y \textasciitilde ~D + C1)}
+\end{table}
+% latex table generated in R 4.2.1 by xtable 1.8-4 package
+% Fri Dec 16 17:22:34 2022
+\begin{table}[ht]
+\centering
+\begingroup\small
+\begin{tabular}{rrr}
+  \hline
+ & 2.5 \% & 97.5 \% \\
+  \hline
+D & 1.82 & 1.89 \\
+   \hline
+\end{tabular}
+\endgroup
+\caption{95-Percent confidence interval: lm(Y \textasciitilde ~D + C2)}
+\end{table}
+
