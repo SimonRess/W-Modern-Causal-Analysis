@@ -62,11 +62,12 @@ header-includes:
     \leavevmode\leftskip=2.5em\inserttocsubsection\par}
 #Adjust representation of chunks
   #Reduce space between code chunks and code output
-  - |
-    \setlength{\OuterFrameSep}{-4pt}
-    \makeatletter
-    \preto{\@verbatim}{\topsep=-10pt \partopsep=-10pt }
-    \makeatother
+    # -> "\OuterFrameSep" from "framed" package
+#  - |
+#    \setlength{\OuterFrameSep}{-4pt} 
+#    \makeatletter
+#    \preto{\@verbatim}{\topsep=-10pt \partopsep=-10pt }
+#    \makeatother
   #Change background-color of source-code
   - \definecolor{shadecolor}{RGB}{240,240,240}
   #Set a frame around the results
@@ -82,6 +83,14 @@ header-includes:
 ---
 
 ```{r setup, include=FALSE}
+#When PDF is not complied:
+  #library(tinytex)
+    # tlmgr_search('/times.sty')   # search for times.sty
+    # tlmgr_install('psnfss')      # install the psnfss package
+    # tlmgr_update()               # update everything
+
+
+
 # if(!require("installr")) install.packages("installr")
 #  library(installr)
 #  updateR()
@@ -102,54 +111,11 @@ knitr::opts_chunk$set(echo = T,
 
 \tableofcontents[]
 
-# Setup
-
-### Target
-
-**Meta information**
-
--   Finanzausschuss
--   Ausschüsse der 19. Wahlperiode (2017-2021)
--   Öffentliche Anhörungen
-
-URL: <https://www.bundestag.de/webarchiv/Ausschuesse/ausschuesse19/a07/Anhoerungen>
-
-**Unit information**
-
--   Committees
-
-URL: Needs to be scraped from main page
-
-### Configurate & Start Selenium/Browser
-
-```{r Selenium-install, include=F}
-if(!require("tidyverse")) install.packages("tidyverse") 
-  library(tidyverse) # for fill() 
-if(!require("stringr")) install.packages("stringr")
-  library(stringr) # for str_detect()
-if(!require("RSelenium")) install.packages("RSelenium")
-if(!require("rvest")) install.packages("rvest")
-```
-
-```{r Selenium, results='hide', message=F, warning=F}
-library(RSelenium)
-library(rvest) #for read_html(), html_elements()...
-#Free all ports
-  system("taskkill /im java.exe /f", intern=FALSE, ignore.stdout=FALSE)
-#Start a selenium & Assign client to an R-object  
-  rD <- rsDriver(port = 4561L, browser = "firefox")
-  remDr <- rD[["client"]]
-```
+<!-- ----------------------- NEXT CHAPTER --------------------------------- -->
 
 # I. Causal Hypotheses
 
-# II. The counterfactual causal model
-
-# III. The naive estimator
-
-# IV. Directed Acyclic Graphs (DAGs)
-
-# V. Experimental vs. non-experimental designs
+<!-- --------------------- NEW SLIDE ------------------------------- -->
 
 ### "Simple" causal hypotheses
 
@@ -157,7 +123,7 @@ library(rvest) #for read_html(), html_elements()...
 
 -   Graphic representation of a "simple" hypothesis: causal effect of a feature D on a feature Y
 
-[["Graphics/D_on_Y.png"]]
+![](Graphics/D_on_Y.png)
 
 | **D**                | **Y**              |
 |----------------------|--------------------|
@@ -165,348 +131,95 @@ library(rvest) #for read_html(), html_elements()...
 | Explanatory variable | Explained variable |
 | Independent variable | Dependent variable |
 
-### Function Components
-
-The four parts of a function are:
-
--   **Function Name:** This is the actual name of the function. It is stored in R environment as an object with this name.
--   **Arguments (*optional*):** An argument is a placeholder. When a function is invoked, you pass a value to the argument. Arguments *can* have default values.
--   **Function Body:** The function body contains a collection of statements that defines what the function does.
--   **Return Value:** The return value of a function is the last expression in the function body to be evaluated.
-
-### Examplary Function
-
-```{r examplary_function}
-square <- function(value = 1, factor = 1) {
-     return(value^factor)
-}
-square() #use defaut args
-square(2,3) #use args by position
-square(factor=2, value=5) #use args by name
-```
-
-### Use Case: define savepage()
-
-```{r define_savepage}
-#Load url & return content as r-object 
-  savepage <- function(url){
-    #Navigate to starting page
-      remDr$navigate(url)
-    #Wait until page is loaded  
-      Sys.sleep(abs(rnorm(1, 2, 1)))
-    #Save content to an R-object
-      remDr$getPageSource(header = TRUE)[[1]] %>%  
-        read_html() %>% 
-        return()
-  }
-```
-
-*Note: [[1]] behinde getPageSource() unlist the output -\> makes it searchable*
-
-### Usage of savepage()
-
-```{r use_savepage-print, eval=F}
-#navigate to url & save content as r-object
-page <- savepage("https://www.bundestag.de/ webarchiv/Ausschuesse/ausschuesse19/a07/ Anhoerungen")
-page
-```
-
-```{r use_savepage-eval, echo=F, results='markup'}
-#navigate to url & save content as r-object 
-page <- savepage("https://www.bundestag.de/webarchiv/Ausschuesse/ausschuesse19/a07/Anhoerungen")
-page
-```
-
-# Iteration
-
-### Overview
-
--   Often specific tasts needs to be executed multiple times
--   Iteration can be performed using loops or apply-functions
-
-Example:
-
-```{r urls, echo=F}
-#Urls of all indiv. meeting ages
-urls <- html_elements(page, xpath = "/html/body/main/section/div[2]/div/div/div/div/div/ul/li/a") %>% # or: html_elements(page, css = "<enter CSS-Path >")
-html_attr("href") %>%
-paste0("https://www.bundestag.de",.) 
-```
-
-```{r example-iterations, eval=F}
-#Extract urls of all indiv. meetings
-      urls <- html_elements(page, xpath = "/html//ul/li/a") %>%
-        html_attr("href") %>%
-        paste0("https://www.bundestag.de",.) 
-#Save content of pages
-  meeting1 <- savepage(urls[1])
-  meeting2 <- savepage(urls[2])
-  meeting3 <- savepage(urls[3])
-  ...
-```
-
-## Loops
-
-...
-
-### For-Loop
-
--   A for loop is used for iterating over a sequence:
--   With the break statement, we can stop the loop before it has looped through all the items:
--   With the next statement, we can skip an iteration without terminating the loop:
-
-```{r for-basic, warning=FALSE}
-for (x in names(iris[1:4])) {
-  print(mean(iris[,x]))
-}
-```
-
-### for-loop: break
-
-*Breaking* the loop at certain conditions
-
-```{r for-break}
-for (x in cars$dist) {
-  if (x > 20)  break
-  print(x)
-}
-```
-
-### for-loop: next
-
-*Skip* the code below and start over at certain conditions
-
-```{r for-next}
-fruits <- list("apple", "banana", "cherry")
-
-for (x in fruits) {
-  if (x == "banana") next
-  print(x)
-}
-```
-
-### Use Case: loop over urls
-
--   Create an empty list
--   save content of page pages as list within first list
-
-```{r loop-over-urls}
-meetings <- list()
-for (i in 1:length(urls)) {
-meetings[i] <- savepage(urls[i]) %>% list()
-}
-```
-
-### while-loop
-
--   Execute a set of statements as long as a condition is TRUE
--   *break* statement stops the loop (even if while-condition=TRUE):
--   *next* statement skips an iteration without terminating the loop:
-
-```{r while-Basic}
-i <- 0
-while (i < 3) {
-  i <- i + 1
-  print(i)
-}
-```
+<!-- --------------------- NEW SLIDE ------------------------------- -->
 
-### while-loop: break
+### Criteria for causal inference (D on Y)
 
-*Breaking* the loop at certain conditions
+1.  Distinct theoretical constructs: No definitional dependency between D and Y
+2.  Appropriate operationalizations and measurement of both features: features → variables
+3.  Theoretical plausibility: Qualitative explanation (→ mechanism) of the causal effect necessary; reference to empirical studies not sufficient!
+4.  Appropriate temporal order: Theoretical justification needed (empirical order not sufficient, since anticipation effects can occur)
+5.  Appropriate temporal distance: Some effects take time to unfold and some effects weaken over time (theoretical justification needed)
+6.  Identification of the causal effect: E.g. by DAG
+7.  Empirical association: E.g. by regression analysis
 
-```{r while-break}
-i <- 0
-while (i < 20) {
-  i <- i + 1
-  if (i == 5) break
-  print(i)
-}
-```
+<!-- ----------------------- NEXT CHAPTER --------------------------------- -->
 
-### while-loop: next
+# II. The counterfactual causal model
 
-*Skip* the code below and start over at certain conditions
+<!-- --------------------- NEW SLIDE ------------------------------- -->
 
-```{r while-next}
-i <- 0
-while (i < 10) {
-  i <- i + 1
-  if (i %% 2) next
-  print(i)
-}
-```
+### History and basic idea
 
-### Use Case: collect urls of all meetings
+**History**
 
-\fontsize{9}{6}\selectfont
+▸ First approaches: John Stuart Mill 1843 & Gustav Theodor Fechner 1860)
 
-```{r Collect-urls}
-page <- savepage("https://www.bundestag.de/webarchiv/Ausschuesse/ausschuesse19/a07/Anhoerungen")
-button <- 1
-while (length(button)>0) {
-  page <- remDr$getPageSource(header = TRUE)[[1]] %>%  
-          read_html()
-  urls <- html_elements(page, xpath = "/html/body/main/section/div[2]/div/div/div/div/div/ul/li/a") %>%
-    html_attr("href") %>%
-    paste0("https://www.bundestag.de",.)
-  
-  webElem <- remDr$findElement("css", "body")
-  webElem$sendKeysToElement(list(key = "end"))
-  
-  # find the element
-  button <- remDr$findElements("/html/body/main/section/div[2]/div/div/div/div/div[7]/ul/li[6]/button/i",using = "xpath")
-  if(length(button)>0) {
-    button[[1]]$clickElement()   
-  }
-
-}
-```
-
-## Apply-Family
-
--   The apply in R function can be feed with many functions to perform redundant application on a collection of object (data frame, list, vector, etc.).
--   The purpose of apply() is primarily to avoid explicit uses of loop constructs.
--   Any function can be passed into
-
-### Main apply functions
-
-\fontsize{10}{10}\selectfont
-
-| Function             | Arguments                | Objective                                              | Input                      | Output              |
-|-------------|-------------|---------------------|-------------|-------------|
-| apply                | apply(x, MARGIN, FUN)    | Apply a function to the rows or columns or both        | Data frame or matrix       | vector, list, array |
-| lapply <br> (list)   | lapply(X, FUN)           | Apply a function to all the elements of the input      | List, vector or data frame | list                |
-| sapply <br> (simple) | sapply(X, FUN)           | Apply a function to all the elements of the input      | List, vector or data frame | vector or matrix    |
-| tapply <br> (tagged) | tapply(X, grouping, FUN) | Apply a function for each factor variable in an vector | Vector                     | matrix or array     |
-
-### apply()-usage
+▸ Formal concepts of experimental designs in statistics: Neyman 1923 & Fisher 1935
 
-apply(x, MARGIN, FUN)
+▸ Formalized causal analysis: Donald B. Rubin 1974, 1977 & 1978
 
-```{r apply, warning=FALSE}
-m1 <- matrix(C<-(1:10),nrow=4, ncol=4)
-apply(m1, 1, sum) #1=by row
-apply(m1, 2, sum) #2=by column
-```
+**Basic idea**
 
-### lapply()-usage
+▸ Focus on the causality concept "Estimating the causal effect of D on Y"
 
-**Syntax:** *lapply(X, FUN)*
+▸ Based on experimental language: almost any situation can be described in non-experimental context at least as a thought experiment
 
-```{r lapply}
-lapply(cars, mean)
-```
+**Other names:**
 
-### sapply()-usage
+▸ Potential Outcome Model (POM)
 
-**Syntax:** *sapply(X, FUN)*
+▸ Rubin Causal Model (RCM)
 
-```{r sapply}
-sapply(1:4, print)
-```
+▸ Modern Causal Analysis (MCA)
 
-### tapply()-usage
+<!-- --------------------- NEW SLIDE ------------------------------- -->
 
-\fontsize{9}{10}\selectfont
+### Definitions of treatment and outcomes
 
-**Syntax:** *tapply(X, grouping, FUN)*
+![](Graphics/D_on_Y_names.png)
 
-```{r tapply}
-tapply(iris$Sepal.Length , list(iris$Species), mean)
-```
+**Simplified version of a binary "Treatment":**
 
-Similar to tapply() is aggregate() which returns a data frame
+▸ D=1: Treatment ("Experimental group")
 
-```{r aggregate}
-aggregate(iris$Sepal.Length , list(iris$Species), mean)
-```
+▸ D=0: No Treatment ("Control group")
 
-## Purr-package
+Note: *The binary treatment assumption is a simplistic assumption; There are counterfactual causal models with polytomic treatments (nominal, ordinal, metric).*
 
--   "purrr enhances R's functional programming (FP) toolkit by providing a complete and consistent set of tools for working with functions and vectors."
--   We focus on the map()-functions:
-    -   It transforms input by applying a function to each element of a list or atomic vector
-    -   Returning an object of the same length as the input
-    -   Similar to lapply, but ...
-        -   consistent with all the other functions in purrr
-        -   allows shortcuts for FUN
+<!-- --------------------- NEW SLIDE ------------------------------- -->
 
-### map()-usage
+### Central assumption for outcome Y
 
-**Syntax:** *map(data, FUN)* In pipes: *. %\>% map(\~ FUN)* \| *. %\>% map(function(x) FUN)*
+![](Graphics/D_on_Y_names.png)
 
-```{r map}
-if(!require("purrr")) install.packages("purrr") 
-  library(purrr) # for fill() 
-mtcars %>%
-  split(.$cyl) %>% # from base R
-  map(~ lm(mpg ~ wt, data = .)) %>%
-  map(summary) %>%
-  map_dbl("r.squared")
-```
+Each individual **i** can be observed in two potential states
+(depending on a potential treatment), which means that
+**two potential outcomes** are conceivable for each person i,
+regardless of the actual treatment status:
+▸ Y\<sub\>i\</sub\>\<sup\>0\</sup\>= potential outcome for person i in the case without the treatment
+▸ Y\<sub\>i\</sub\>\<sup\>1\</sup\>= potential outcome for person i in the case of the treatment
+Note: *The outcome is generally viewed as metric, but other
+scale levels can also be assumed.*
 
-### Versions of map()-function
+<!-- ----------------------- NEXT CHAPTER --------------------------------- -->
 
--   map\_**dbl**(.x, .f, ...)
-    -   Return a double vector.
-    -   example: *map_dbl(x, mean)*
--   map\_**int**(.x, .f, ...)
-    -   Return an integer vector.
-    -   example: *map_int(x, length)*
--   map\_**chr**(.x, .f, ...)
-    -   Return a character vector.
-    -   example: *map_chr(l1, paste, collapse = "")*
--   map\_**lgl**(.x, .f, ...)
-    -   Return a logical vector.
-    -   example: *map_lgl(x, is.integer)*
+# III. The naive estimator
 
-### Use Cases: extract dates of meetings
+<!-- --------------------- NEW SLIDE ------------------------------- -->
 
-```{r extract-dates}
-page <- savepage("https://www.bundestag.de/webarchiv/Ausschuesse/ausschuesse19/a07/Anhoerungen")
-date <- html_elements(page,xpath = "/html/body/main/section/div[2]/div/div/div/div/div[@class= 'bt-listenteaser']") %>%
-  lapply(\(.)
-    rep(html_element(.,xpath = "./h4") %>% 
-          html_text(),
-        length(html_elements(.,xpath = ".//a"))))
-date[3]
+<!-- ----------------------- NEXT CHAPTER --------------------------------- -->
 
-```
+# IV. Directed Acyclic Graphs (DAGs)
 
-# Dplyr - Gramma of Data Manipulation
+<!-- --------------------- NEW SLIDE ------------------------------- -->
 
-### Overview
+<!-- ----------------------- NEXT CHAPTER --------------------------------- -->
 
-### Pipe-Operator
+# V. Experimental vs. non-experimental designs
 
-### filter()
+<!-- --------------------- NEW SLIDE ------------------------------- -->
+### End of the Preview
 
-### summarise()
 
-across
-
-### group_by()
-
-ungroup()
-
-### rowwise()
-
-### mutate()
-
-### distinct
-
-### slice
-
-### select
-
-# Helpful Sources
-
--   [Chapter: Iteration, in "R for Data Science"](https://r4ds.had.co.nz/iteration.html)
--   [purr: Overview](https://purrr.tidyverse.org/)
--   [purr: References](https://purrr.tidyverse.org/reference/index.html)
--   [purr: Reference manual](https://cloud.r-project.org/web/packages/purrr/purrr.pdf)
--   [purr: Cheat Sheet](https://github.com/rstudio/cheatsheets/blob/master/purrr.pdf)
--   [dplyr: Cheat Sheet](https://raw.githubusercontent.com/rstudio/cheatsheets/main/data-transformation.pdf)
-
-[Tilde Operator]<https://rdrr.io/r/base/tilde.html> [Assignment Operators]<https://rdrr.io/r/base/assignOps.html> [Arithmetic Operators](https://rdrr.io/r/base/Arithmetic.html) [Colon Operator](https://rdrr.io/r/base/Colon.html) [Relational Operators](https://rdrr.io/r/base/Comparison.html) [Logical Operators](https://rdrr.io/r/base/Logic.html) [Double Colon and Triple Colon Operators](https://rdrr.io/r/base/ns-dblcolon.html) [Operators on the Date Class](https://rdrr.io/r/base/Ops.Date.html) [Operator Syntax and Precedence](https://rdrr.io/r/base/Syntax.html)
+### Literature
