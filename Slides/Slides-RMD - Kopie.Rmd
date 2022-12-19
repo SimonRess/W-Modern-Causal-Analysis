@@ -63,40 +63,48 @@ header-includes:
 #Adjust representation of chunks
   #Reduce space between code chunks and code output
     # -> "\OuterFrameSep" from "framed" package
+#    \usepackage{framed}
 #  - |
 #    \setlength{\OuterFrameSep}{-4pt} 
 #    \makeatletter
 #    \preto{\@verbatim}{\topsep=-10pt \partopsep=-10pt }
 #    \makeatother
   #Change background-color of source-code
-  - \definecolor{shadecolor}{RGB}{240,240,240}
+#  - \definecolor{shadecolor}{RGB}{240,240,240}
   #Set a frame around the results
-  - | 
-    \let\verbatim\undefined
-    \let\verbatimend\undefined
-    \DefineVerbatimEnvironment{verbatim}{Verbatim}{frame=single, rulecolor=\color{shadecolor}, framerule=0.3mm,framesep=1mm}
+#  - | 
+#    \let\verbatim\undefined
+#    \let\verbatimend\undefined
+#    \DefineVerbatimEnvironment{verbatim}{Verbatim}{frame=single, rulecolor=\color{shadecolor}, framerule=0.3mm,framesep=1mm}
 #enable line breaks in chunks
-  - |
-    \usepackage{fvextra}
-    \DefineVerbatimEnvironment{Highlighting}{Verbatim}{breaklines,commandchars=\\\{\}}
-#   \DefineVerbatimEnvironment{verbatim}{Verbatim}{breaklines,commandchars=\\\{\}}
+#  - |
+#    \usepackage{fvextra}
+#    \usepackage{fancyvrb} # includes \DefineVerbatimEnvironment
+#    \DefineVerbatimEnvironment{Highlighting}{Verbatim}{breaklines,commandchars=\\\{\}}
+##   \DefineVerbatimEnvironment{verbatim}{Verbatim}{breaklines,commandchars=\\\{\}}
 ---
 
 ```{r setup, include=FALSE}
+
 #When PDF is not complied:
+  #if(!require("tinytex")) install.packages("tinytex") 
   #library(tinytex)
     # tlmgr_search('/times.sty')   # search for times.sty
     # tlmgr_install('psnfss')      # install the psnfss package
-    # tlmgr_update()               # update everything
 
+  #update alle R & LaTex packages if nothing else helps:
+    # update.packages(ask = FALSE, checkBuilt = TRUE) # upadte every R package
+    # tlmgr_update()               # update every LateX package
 
+# show additional messages to help you debug the problem:
+  options(tinytex.verbose = TRUE) # RMD: command within a chunk // LaTex: run command before you compile the document
 
 # if(!require("installr")) install.packages("installr")
 #  library(installr)
 #  updateR()
-if(!require("tidyverse")) install.packages("tidyverse") 
-  library(tidyverse) # for fill() 
-if(!require("formatR")) install.packages("formatR")
+#if(!require("tidyverse")) install.packages("tidyverse") 
+  #library(tidyverse) # for fill() 
+#if(!require("formatR")) install.packages("formatR")
   library(formatR)
 #if(!require("styler")) install.packages("styler")
 #  library(styler)
