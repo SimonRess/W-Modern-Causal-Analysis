@@ -1,0 +1,345 @@
+--------------------------------------------------------------
+      name:  <unnamed>
+       log:  C:\Users\gesis-sum\Desktop\Kausalanalyse\Uebung_M
+> atching\matching.log
+  log type:  text
+ opened on:  15 Nov 2017, 16:55:10
+
+. 
+. 
+. *********************************** Datenaufbereitung ******
+> *****************************************
+. 
+. *************************
+. *** Treatment-Variable
+. *************************
+. gen D=inlist(casmin,8,9)
+
+. replace D=. if casmin<=0
+(655 real changes made, 655 to missing)
+
+. tab casmin D,m
+
+                      |           D
+CASMIN Classification |         0          1 |     Total
+----------------------+----------------------+----------
+        -1. No Answer |         0          0 |       319 
+     0. (0) In School |         0          0 |       336 
+1. (1a) Inadequately  |       174          0 |       174 
+2. (1b) General Eleme |       930          0 |       930 
+3. (1c) Basic Vocatio |     2,722          0 |     2,722 
+4. (2b) Intermediate  |       345          0 |       345 
+5. (2a) Intermediate  |     2,471          0 |     2,471 
+6. (2c_gen) General M |       380          0 |       380 
+7. (2c_voc) Vocationa |       688          0 |       688 
+8. (3a) Lower Tertiar |         0        648 |       648 
+9. (3b) Higher Tertia |         0      1,516 |     1,516 
+----------------------+----------------------+----------
+                Total |     7,710      2,164 |    10,529 
+
+
+                      |     D
+CASMIN Classification |         . |     Total
+----------------------+-----------+----------
+        -1. No Answer |       319 |       319 
+     0. (0) In School |       336 |       336 
+1. (1a) Inadequately  |         0 |       174 
+2. (1b) General Eleme |         0 |       930 
+3. (1c) Basic Vocatio |         0 |     2,722 
+4. (2b) Intermediate  |         0 |       345 
+5. (2a) Intermediate  |         0 |     2,471 
+6. (2c_gen) General M |         0 |       380 
+7. (2c_voc) Vocationa |         0 |       688 
+8. (3a) Lower Tertiar |         0 |       648 
+9. (3b) Higher Tertia |         0 |     1,516 
+----------------------+-----------+----------
+                Total |       655 |    10,529 
+
+
+. 
+. lab var D "treatment: college"
+
+. label define Dlab 0 "no college" 1 "college" 
+
+. label value D Dlab
+
+. 
+. 
+. 
+. *************************
+. *** Outcome-Variable
+. *************************
+. gen Y=grossincome/(workinghours*4.35)
+
+. replace Y=. if grossincome<=0 | workinghours<=0
+(4,888 real changes made, 4,888 to missing)
+
+. label var Y "gross hourly wage"
+
+. sum Y, detail
+
+                      gross hourly wage
+-------------------------------------------------------------
+      Percentiles      Smallest
+ 1%     1.532567       .3417114
+ 5%     3.479624        .410509
+10%     5.268199       .5190953       Obs               5,641
+25%     8.538588       .5229885       Sum of Wgt.       5,641
+
+50%     12.94353                      Mean           14.78765
+                        Largest       Std. Dev.      10.77908
+75%      18.3908        155.811
+90%     25.54278        163.576       Variance       116.1886
+95%     31.22753       167.1891       Skewness       4.650314
+99%     51.72414       193.1035       Kurtosis       51.63629
+
+. 
+end of do-file
+
+. do "C:\Users\GESIS-~1\AppData\Local\Temp\STD00000000.tmp"
+
+. keep if lfs==11                                 /* nur Erwer
+> bstaetige */
+(4,660 observations deleted)
+
+. keep if (age>=20 & age<=60)             /* Alter 20 bis 60 *
+> /
+(406 observations deleted)
+
+. 
+. 
+. 
+. ************************************************************
+> *
+. * globale Definition der Kontrollvariablen + Missings loesch
+> en
+. ************************************************************
+> *
+. # d ;
+delimiter now ;
+. global X "age female german feduc2 feduc3 feduc4 feduc5 dumm
+> ytwoparents";
+
+. # d cr
+delimiter now cr
+. 
+. **** Missings loeschen
+. egen varmiss=rowmiss(Y D $X)
+
+. drop if varmiss>0
+(2,724 observations deleted)
+
+. 
+. 
+. *******************************
+. * randomize sort order of data
+. *******************************
+. set seed 12345 
+
+. gen random = uniform() 
+
+. sort random
+
+. 
+end of do-file
+
+. do "C:\Users\GESIS-~1\AppData\Local\Temp\STD00000000.tmp"
+
+. logit D $X
+
+Iteration 0:   log likelihood = -1642.7007  
+Iteration 1:   log likelihood = -1422.9132  
+Iteration 2:   log likelihood =  -1414.208  
+Iteration 3:   log likelihood = -1414.1816  
+Iteration 4:   log likelihood = -1414.1816  
+
+Logistic regression                             Number of obs 
+>     =      2,739
+                                                LR chi2(8)    
+>     =     457.04
+                                                Prob > chi2   
+>     =     0.0000
+Log likelihood = -1414.1816                     Pseudo R2     
+>     =     0.1391
+
+--------------------------------------------------------------
+> ----------------
+           D |      Coef.   Std. Err.      z    P>|z|     [95%
+>  Con                                                        
+>     f. Interval]
+-------------+------------------------------------------------
+> ----------------
+         age |   .0684265   .0047703    14.34   0.000     .059
+> 0768                                                        
+>         .0777762
+      female |  -.2008669    .092743    -2.17   0.030    -.382
+> 6398                                                        
+>        -.0190941
+      german |  -.0158518   .2593165    -0.06   0.951    -.524
+> 1029                                                        
+>         .4923992
+      feduc2 |   .5425809   .1987887     2.73   0.006     .152
+> 9622                                                        
+>         .9321997
+      feduc3 |   1.595809   .2194934     7.27   0.000      1.1
+> 6561                                                        
+>         2.026008
+      feduc4 |   1.424312   .2836776     5.02   0.000      .86
+> 8314                                                        
+>          1.98031
+      feduc5 |   2.467602   .2199671    11.22   0.000     2.03
+> 6475                                                        
+>          2.89873
+dummytwopa~s |   .4430088   .1497069     2.96   0.003     .149
+> 5887                                                        
+>          .736429
+       _cons |   -5.19208   .3968955   -13.08   0.000    -5.96
+> 9981                                                        
+>        -4.414179
+--------------------------------------------------------------
+> ----------------
+
+. 
+end of do-file
+
+. do "C:\Users\GESIS-~1\AppData\Local\Temp\STD00000000.tmp"
+
+. logit D $X
+
+Iteration 0:   log likelihood = -1642.7007  
+Iteration 1:   log likelihood = -1422.9132  
+Iteration 2:   log likelihood =  -1414.208  
+Iteration 3:   log likelihood = -1414.1816  
+Iteration 4:   log likelihood = -1414.1816  
+
+Logistic regression                             Number of obs     =      2,739
+                                                LR chi2(8)        =     457.04
+                                                Prob > chi2       =     0.0000
+Log likelihood = -1414.1816                     Pseudo R2         =     0.1391
+
+---------------------------------------------------------------------------------
+              D |      Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
+----------------+----------------------------------------------------------------
+            age |   .0684265   .0047703    14.34   0.000     .0590768    .0777762
+         female |  -.2008669    .092743    -2.17   0.030    -.3826398   -.0190941
+         german |  -.0158518   .2593165    -0.06   0.951    -.5241029    .4923992
+         feduc2 |   .5425809   .1987887     2.73   0.006     .1529622    .9321997
+         feduc3 |   1.595809   .2194934     7.27   0.000      1.16561    2.026008
+         feduc4 |   1.424312   .2836776     5.02   0.000      .868314     1.98031
+         feduc5 |   2.467602   .2199671    11.22   0.000     2.036475     2.89873
+dummytwoparents |   .4430088   .1497069     2.96   0.003     .1495887     .736429
+          _cons |   -5.19208   .3968955   -13.08   0.000    -5.969981   -4.414179
+---------------------------------------------------------------------------------
+
+. 
+end of do-file
+
+. do "C:\Users\GESIS-~1\AppData\Local\Temp\STD00000000.tmp"
+
+. ssc install psmatch2
+checking psmatch2 consistency and verifying not already installed...
+installing into c:\ado\plus\...
+installation complete.
+
+. 
+end of do-file
+
+. do "C:\Users\GESIS-~1\AppData\Local\Temp\STD00000000.tmp"
+
+. psmatch2 D $X, outcome(Y) logit common neighbor(1) // psmatch2 "Treatmentvar." "Kontroll
+> var.",outcome("interessierende Outcomevar.")
+
+Logistic regression                             Number of obs     =      2,739
+                                                LR chi2(8)        =     457.04
+                                                Prob > chi2       =     0.0000
+Log likelihood = -1414.1816                     Pseudo R2         =     0.1391
+
+---------------------------------------------------------------------------------
+              D |      Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
+----------------+----------------------------------------------------------------
+            age |   .0684265   .0047703    14.34   0.000     .0590768    .0777762
+         female |  -.2008669    .092743    -2.17   0.030    -.3826398   -.0190941
+         german |  -.0158518   .2593165    -0.06   0.951    -.5241029    .4923992
+         feduc2 |   .5425809   .1987887     2.73   0.006     .1529622    .9321997
+         feduc3 |   1.595809   .2194934     7.27   0.000      1.16561    2.026008
+         feduc4 |   1.424312   .2836776     5.02   0.000      .868314     1.98031
+         feduc5 |   2.467602   .2199671    11.22   0.000     2.036475     2.89873
+dummytwoparents |   .4430088   .1497069     2.96   0.003     .1495887     .736429
+          _cons |   -5.19208   .3968955   -13.08   0.000    -5.969981   -4.414179
+---------------------------------------------------------------------------------
+There are observations with identical propensity score values.
+The sort order of the data could affect your results.
+Make sure that the sort order is random before calling psmatch2.
+----------------------------------------------------------------------------------------
+        Variable     Sample |    Treated     Controls   Difference         S.E.   T-stat
+----------------------------+-----------------------------------------------------------
+               Y  Unmatched | 21.9566062   12.6941397   9.26246646   .450559021    20.56
+                        ATT | 21.9560245   14.0363478   7.91967677   .867887553     9.13
+----------------------------+-----------------------------------------------------------
+Note: S.E. does not take into account that the propensity score is estimated.
+
+ psmatch2: |   psmatch2: Common
+ Treatment |        support
+assignment | Off suppo  On suppor |     Total
+-----------+----------------------+----------
+ Untreated |         0      1,952 |     1,952 
+   Treated |         1        786 |       787 
+-----------+----------------------+----------
+     Total |         1      2,738 |     2,739 
+
+
+. 
+end of do-file
+
+. do "C:\Users\GESIS-~1\AppData\Local\Temp\STD00000000.tmp"
+
+. psmatch2 D $X, outcome(Y) logit common neighbor(1) ate // psmatch2 "Treatmentvar." "Kontroll
+> var.",outcome("interessierende Outcomevar.")
+
+Logistic regression                             Number of obs     =      2,739
+                                                LR chi2(8)        =     457.04
+                                                Prob > chi2       =     0.0000
+Log likelihood = -1414.1816                     Pseudo R2         =     0.1391
+
+---------------------------------------------------------------------------------
+              D |      Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
+----------------+----------------------------------------------------------------
+            age |   .0684265   .0047703    14.34   0.000     .0590768    .0777762
+         female |  -.2008669    .092743    -2.17   0.030    -.3826398   -.0190941
+         german |  -.0158518   .2593165    -0.06   0.951    -.5241029    .4923992
+         feduc2 |   .5425809   .1987887     2.73   0.006     .1529622    .9321997
+         feduc3 |   1.595809   .2194934     7.27   0.000      1.16561    2.026008
+         feduc4 |   1.424312   .2836776     5.02   0.000      .868314     1.98031
+         feduc5 |   2.467602   .2199671    11.22   0.000     2.036475     2.89873
+dummytwoparents |   .4430088   .1497069     2.96   0.003     .1495887     .736429
+          _cons |   -5.19208   .3968955   -13.08   0.000    -5.969981   -4.414179
+---------------------------------------------------------------------------------
+There are observations with identical propensity score values.
+The sort order of the data could affect your results.
+Make sure that the sort order is random before calling psmatch2.
+----------------------------------------------------------------------------------------
+        Variable     Sample |    Treated     Controls   Difference         S.E.   T-stat
+----------------------------+-----------------------------------------------------------
+               Y  Unmatched | 21.9566062   12.6941397   9.26246646   .450559021    20.56
+                        ATT | 21.9560245   14.0363478   7.91967677   .867887553     9.13
+                        ATU |  12.901056   19.1938805   6.29282449            .        .
+                        ATE |                           6.77336034            .        .
+----------------------------+-----------------------------------------------------------
+Note: S.E. does not take into account that the propensity score is estimated.
+
+ psmatch2: |   psmatch2: Common
+ Treatment |        support
+assignment | Off suppo  On suppor |     Total
+-----------+----------------------+----------
+ Untreated |        77      1,875 |     1,952 
+   Treated |         1        786 |       787 
+-----------+----------------------+----------
+     Total |        78      2,661 |     2,739 
+
+
+. 
+end of do-file
+
+. help psmatch2
+
+. exit, clear
